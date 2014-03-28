@@ -38,7 +38,7 @@ function entityreference_revert_entity_property_getter_callback($data, array $op
 }
 
 /**
- * 
+ * Utility function to get the entities array.
  */
 function entityreference_revert_get_entities($field, $entity_id, $langcode) {
   $query = new EntityFieldQuery();
