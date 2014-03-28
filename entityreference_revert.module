@@ -1,0 +1,50 @@
+<?php
+
+/**
+ * @file
+ * Entity reference revert module file. 
+ */
+
+/**
+ * Implements hook_info_alter().
+ */
+function entityreference_revert_entity_property_info_alter(&$info) {
+  $fields_info = field_info_fields();
+  // Add [field_entityreference]_revert to the referenced bundle.
+  foreach ($fields_info as $field => $field_info) {
+    if ($field_info['type'] == 'entityreference') {
+      $entity_type_referenced = $field_info['settings']['target_type'];
+      // Just add a property that with the original field name and '_revert' suffix.
+      $info[$entity_type_referenced]['properties'][$field . '_revert'] = array(
+        'label' => t('Revert of @field', array('@field' => $field)),
+        'descriptoin' => t('Reverted relationship of @field.', array('@field' => $field)),
+        'type' => 'list',
+        'computed' => TRUE,
+        'getter callback' => 'entityreference_revert_entity_property_getter_callback',        
+      );
+    }
+  }
+}
+
+/**
+ * 'getter callback' for property in EntityMetadataWrapper.
+ */
+function entityreference_revert_entity_property_getter_callback($data, array $options, $name, $type, $info) {
+  list($id, $vid, $bundle) = entity_extract_ids($type, $data);
+  $field = substr($name, 0, strlen($name) - 7);
+  $entities = entityreference_revert_get_entities($field, $id, $info['langcode']);
+
+  return $entities;
+}
+
+/**
+ * 
+ */
+function entityreference_revert_get_entities($field, $entity_id, $langcode) {
+  $query = new EntityFieldQuery();
+  $query->fieldCondition($field, 'target_id', $entity_id, '=')
+    ->fieldLanguageCondition($field, $langcode, '=');
+  $result = $query->execute();
+
+  return $result;
+}
