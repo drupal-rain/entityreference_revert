@@ -5,6 +5,9 @@
  * Entity reference revert module file. 
  */
 
+// -----------------------------------------------------------------------------
+// Property info
+
 /**
  * Implements hook_info_alter().
  */
@@ -20,7 +23,7 @@ function entityreference_revert_entity_property_info_alter(&$info) {
         'descriptoin' => t('Reverted relationship of @field.', array('@field' => $field)),
         'type' => 'list',
         'computed' => TRUE,
-        'getter callback' => 'entityreference_revert_entity_property_getter_callback',        
+        'getter callback' => 'entityreference_revert_entity_property_getter_callback',
       );
     }
   }
@@ -36,6 +39,9 @@ function entityreference_revert_entity_property_getter_callback($data, array $op
 
   return $entities;
 }
+
+// -----------------------------------------------------------------------------
+// Utility
 
 /**
  * Utility function to get the entities array.
