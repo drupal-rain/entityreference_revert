@@ -9,11 +9,13 @@
 // Property info
 
 /**
- * Implements hook_info_alter().
+ * Implements hook_entity_property_info().
+ *
+ * Add [field_entityreference]_revert to the referenced bundle.
  */
-function entityreference_revert_entity_property_info_alter(&$info) {
+function entityreference_revert_entity_property_info() {
+  $info = array();
   $fields_info = field_info_fields();
-  // Add [field_entityreference]_revert to the referenced bundle.
   foreach ($fields_info as $field => $field_info) {
     if ($field_info['type'] == 'entityreference') {
       $entity_type_referenced = $field_info['settings']['target_type'];
@@ -27,6 +29,8 @@ function entityreference_revert_entity_property_info_alter(&$info) {
       );
     }
   }
+
+  return $info;
 }
 
 /**
