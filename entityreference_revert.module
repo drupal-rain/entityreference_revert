@@ -19,13 +19,14 @@ function entityreference_revert_entity_property_info() {
   foreach ($fields_info as $field => $field_info) {
     if ($field_info['type'] == 'entityreference') {
       $entity_type_referenced = $field_info['settings']['target_type'];
-      // Just add a property that with the original field name and '_revert' suffix.
-      $info[$entity_type_referenced]['properties'][$field . '_revert'] = array(
+      // Just add a property that with the original field name and '_revert' prefix.
+      $info[$entity_type_referenced]['properties']['revert_' . $field] = array(
         'label' => t('Revert of @field', array('@field' => $field)),
         'descriptoin' => t('Reverted relationship of @field.', array('@field' => $field)),
-        'type' => 'list',
+        'type' => 'struct',
         'computed' => TRUE,
         'getter callback' => 'entityreference_revert_entity_property_getter_callback',
+        'property info' => entityreference_revert_struct_entity_property_info($field_info),
       );
     }
   }
@@ -38,10 +39,27 @@ function entityreference_revert_entity_property_info() {
  */
 function entityreference_revert_entity_property_getter_callback($data, array $options, $name, $type, $info) {
   list($id, $vid, $bundle) = entity_extract_ids($type, $data);
-  $field = substr($name, 0, strlen($name) - 7);
+  $field = substr($name, 7);
   $entities = entityreference_revert_get_entities($field, $id, $info['langcode']);
 
   return $entities;
+}
+
+/**
+ * Generate the struct info.
+ */
+function entityreference_revert_struct_entity_property_info($field_info) {
+  $entity_types = array_keys($field_info['bundles']);
+  $info = array();
+  foreach ($entity_types as $entity_type) {
+    $info[$entity_type] = array(
+    	'label' => t('Entity: @entity_type', array('@entity_type' => $entity_type)),
+      'description' => t('Entity in reverted relationship of entityreference.'),
+      'type' => 'list<' . $entity_type . '>',
+    );
+  }
+
+  return $info;
 }
 
 // -----------------------------------------------------------------------------
@@ -51,10 +69,7 @@ function entityreference_revert_entity_property_getter_callback($data, array $op
  * Utility function to get the entities array.
  */
 function entityreference_revert_get_entities($field, $entity_id, $langcode) {
-  $query = new EntityFieldQuery();
-  $query->fieldCondition($field, 'target_id', $entity_id, '=')
-    ->fieldLanguageCondition($field, $langcode, '=');
-  $result = $query->execute();
+  $result = KtoolsEntityField::entityreferenceRevertEntities($field, $entity_id, NULL, $langcode);
 
   return $result;
 }
